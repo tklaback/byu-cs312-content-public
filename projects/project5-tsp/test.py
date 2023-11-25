@@ -8,6 +8,9 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
     cur_bound = 0
     
     #returns new reduced matrix and bound corresponding to it
+    if avoid_row and avoid_col:
+        arr[avoid_col][avoid_row] = float('inf')
+    
     new_list = []
 
     for row in range(len(arr)):
@@ -30,10 +33,10 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
     
     return (new_list, cur_bound)
 
-def expand(arr: list, state: int = None):
-    for row in range(len(arr)):
-        for col in range(len(arr[0])):
-            get_bound(arr, row, col)
+def expand(arr: list, row_num: int, prev_bound: int, remaining_path_cost: int):
+    for col in range(len(arr[row_num])):
+        if arr[row_num][col] != float('inf'):
+            new_matrix, bound = get_bound(arr, row_num, col)
 
 
 
@@ -43,8 +46,9 @@ def process(arr: list):
     q = [arr]
 
     while len(q) != 0:
-        cur_arr = arr.pop(0)
-        if get_bound(cur_arr)[1] < bssf:
+        cur_arr = q.pop(0)
+        new_matrix, bound = get_bound(cur_arr)
+        if bound < bssf:
             pass
 
 
