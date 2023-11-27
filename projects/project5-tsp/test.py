@@ -8,18 +8,18 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
     cur_bound = 0
     
     #returns new reduced matrix and bound corresponding to it
-    if avoid_row and avoid_col:
+    if avoid_row != None and avoid_col != None:
         arr[avoid_col][avoid_row] = float('inf')
     
     new_list = []
 
     for row in range(len(arr)):
+        tmp_lyst = []
         if row == avoid_row:
             for col in range(len(arr[0])):
                 tmp_lyst.append(float('inf'))
             new_list.append(tmp_lyst)
             continue
-        tmp_lyst = []
         min_val = min(arr[row])
         cur_bound += min_val
         for col in range(len(arr[0])):
@@ -40,7 +40,7 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
 
 def expand(arr: list, prev_bound: int, cur_lyst: list):
     expansion = []
-    row_num = cur_lyst[-1]
+    row_num = cur_lyst[-1] - 1
     for col in range(len(arr[row_num])):
         if arr[row_num][col] != float('inf'):
             new_matrix, bound = get_bound(arr, row_num, col)
@@ -61,6 +61,8 @@ def test(visited: list, arr_length: int):
     return False
 
 def process(arr: list):
+    global bssf
+
     lyst = [1]
     new_list, new_bound = get_bound(arr)
 
@@ -85,9 +87,9 @@ arr = \
     [float('inf'), 9           , float('inf'), 8           , float('inf')], 
     [float('inf'), float('inf'), 4           , float('inf'), 2           ], 
     [float('inf'), 3           , float('inf'), 4           , float('inf')], 
-    [float('inf'), 6           , 7           , float('inf'), 12          ]
+    [float('inf'), 6           , 7           , float('inf'), 12          ],
     [1           , float('inf'), float('inf'), 10          , float('inf')]
 ]
 
 
-get_bound(arr)
+process(arr)
