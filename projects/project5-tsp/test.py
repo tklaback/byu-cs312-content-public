@@ -38,30 +38,46 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
     
     return (new_list, cur_bound)
 
-def expand(arr: list, row_num: int, prev_bound: int, remaining_path_cost: int):
+def expand(arr: list, prev_bound: int, cur_lyst: list):
     expansion = []
+    row_num = cur_lyst[-1]
     for col in range(len(arr[row_num])):
         if arr[row_num][col] != float('inf'):
             new_matrix, bound = get_bound(arr, row_num, col)
-            if (prev_bound + remaining_path_cost + bound) < bssf:
-                expansion.append([(row_num, col), (prev_bound + remaining_path_cost + bound)])
+            if (prev_bound + arr[row_num][col] + bound) < bssf:
+                expansion.append([new_matrix, (prev_bound + arr[row_num][col] + bound), cur_lyst[:] + [col + 1]])
     
     return expansion
 
 # TODO: How do I test the current subproblem to see if it is a complete tour?
+# ANSWER: keep a data data structure for the current subproblem that shows which
+# nodes you've already visited. Then, if the size of that data structure = n + 1 and the
+# first and last elements are the same then return the bound, otherwise, infinity.
 
 
+def test(visited: list, arr_length: int):
+    if len(visited) == arr_length + 1 and visited[0] == visited[-1]:
+        return True
+    return False
 
 def process(arr: list):
-    get_bound(arr)
+    lyst = [1]
+    new_list, new_bound = get_bound(arr)
 
-    q = [arr]
+    q = [(new_list, new_bound, lyst)]
 
     while len(q) != 0:
-        cur_arr = q.pop(0)
-        new_matrix, bound = get_bound(cur_arr)
-        if bound < bssf:
-            pass
+        cur_element = q.pop(0)
+        if cur_element[1] < bssf:
+            arr_of_matrices = expand(cur_element[0], cur_element[1], cur_element[2])
+            for itm in arr_of_matrices:
+                if test(itm[2], len(arr)):
+                    bssf = itm[1]
+                elif itm[1] < bssf:
+                    q.append(itm)
+
+    return bssf
+            
 
 
 arr = \
