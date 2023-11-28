@@ -1,6 +1,6 @@
 
 
-
+from pq import GraphNode, BinaryHeap
 bssf = float('inf')
 lower_bound = 0
 
@@ -25,7 +25,7 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
         min_val = min(arr[row])
         cur_bound += min_val
         for col in range(len(arr[0])):
-            tmp_lyst.append(arr[row][col] - min_val)
+            tmp_lyst.append(arr[row][col] - min_val if arr[row][col] != float('inf') else float('inf'))
         new_list.append(tmp_lyst)
     
     for row in range(len(new_list)):
@@ -36,18 +36,19 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
         min_col_num = min([new_list[col][row] for col in range(len(new_list[0]))])
         cur_bound += min_col_num
         for col in range(len(new_list[0])):
-            new_list[col][row] -= min_col_num
+            if new_list[col][row] != float('inf'):
+                new_list[col][row] -= min_col_num
     
     return (new_list, cur_bound)
 
-def expand(arr: list, prev_bound: int, cur_lyst: list):
+def expand(cur_element: GraphNode):
     expansion = []
-    row_num = cur_lyst[-1]
-    for col in range(len(arr[row_num])):
-        if arr[row_num][col] != float('inf'):
-            new_matrix, bound = get_bound(arr, row_num, col)
-            if (prev_bound + arr[row_num][col] + bound) < bssf:
-                expansion.append([new_matrix, (prev_bound + arr[row_num][col] + bound), cur_lyst[:] + [col]])
+    row_num = cur_element.path[-1]
+    for col in range(len(cur_element.matrix[row_num])):
+        if cur_element.matrix[row_num][col] != float('inf'):
+            new_matrix, bound = get_bound(cur_element.matrix, row_num, col)
+            if bound != float('nan') and (cur_element.bound + cur_element.matrix[row_num][col] + bound) < bssf:
+                expansion.append(GraphNode(new_matrix, (cur_element.bound + cur_element.matrix[row_num][col] + bound), cur_element.path[:] + [col]))
     
     return expansion
 
@@ -68,17 +69,21 @@ def process(arr: list):
     lyst = [0]
     new_list, new_bound = get_bound(arr)
 
-    q = [(new_list, new_bound, lyst)]
+    # q = [GraphNode(new_list, new_bound, lyst)]
+    q = BinaryHeap()
+    q.insert(GraphNode(new_list, new_bound, lyst))
 
-    while len(q) != 0:
-        cur_element = q.pop(0)
-        if cur_element[1] < bssf:
-            arr_of_matrices = expand(cur_element[0], cur_element[1], cur_element[2])
+    while True:
+        cur_element = q.delete_min()
+        if cur_element == None:
+            break
+        if cur_element.bound < bssf:
+            arr_of_matrices = expand(cur_element)
             for itm in arr_of_matrices:
-                if test(itm[2], len(arr)):
-                    bssf = itm[1]
-                elif itm[1] < bssf:
-                    q.append(itm)
+                if test(itm.path, len(arr)):
+                    bssf = itm.bound
+                elif itm.bound < bssf:
+                    q.insert(itm)
 
     return bssf
             
