@@ -4,18 +4,23 @@
 bssf = float('inf')
 lower_bound = 0
 
-def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
+def get_bound(arr: list, avoid_row: list = None, avoid_col: list = None) -> tuple:
     cur_bound = 0
+
+    
     
     #returns new reduced matrix and bound corresponding to it
     if avoid_row != None and avoid_col != None:
-        arr[avoid_col][avoid_row] = float('inf')
+        if len(avoid_col) != len(avoid_row):
+            raise Exception("AVOID ROWS AND COLUMNS DO NOT MATCH")
+        for itr in range(len(avoid_row)):
+            arr[avoid_col[itr]][avoid_row[itr]] = float('inf')
     
     new_list = []
 
     for row in range(len(arr)):
         tmp_lyst = []
-        if row == avoid_row:
+        if avoid_row and row in avoid_row:
             for col in range(len(arr[0])):
                 tmp_lyst.append(float('inf'))
             new_list.append(tmp_lyst)
@@ -27,7 +32,7 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
         new_list.append(tmp_lyst)
     
     for row in range(len(new_list)):
-        if row == avoid_col:
+        if avoid_col and row in avoid_col:
             for col in range(len(new_list[0])):
                 new_list[col][row] = float('inf')
             continue
@@ -38,14 +43,14 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
     
     return (new_list, cur_bound)
 
-def expand(arr: list, prev_bound: int, cur_lyst: list):
+def expand(arr: list, prev_bound: int, cur_lyst: list, avoid_rows: list, avoid_cols: list):
     expansion = []
-    row_num = cur_lyst[-1] - 1
+    row_num = cur_lyst[-1]
     for col in range(len(arr[row_num])):
         if arr[row_num][col] != float('inf'):
-            new_matrix, bound = get_bound(arr, row_num, col)
+            new_matrix, bound = get_bound(arr, avoid_rows + [row_num], avoid_cols + [col])
             if (prev_bound + arr[row_num][col] + bound) < bssf:
-                expansion.append([new_matrix, (prev_bound + arr[row_num][col] + bound), cur_lyst[:] + [col + 1]])
+                expansion.append([new_matrix, (prev_bound + arr[row_num][col] + bound), cur_lyst[:] + [col], avoid_rows + [row_num], avoid_cols + [col]])
     
     return expansion
 
@@ -63,15 +68,15 @@ def test(visited: list, arr_length: int):
 def process(arr: list):
     global bssf
 
-    lyst = [1]
+    lyst = [0]
     new_list, new_bound = get_bound(arr)
 
-    q = [(new_list, new_bound, lyst)]
+    q = [(new_list, new_bound, lyst, [], [])]
 
     while len(q) != 0:
         cur_element = q.pop(0)
         if cur_element[1] < bssf:
-            arr_of_matrices = expand(cur_element[0], cur_element[1], cur_element[2])
+            arr_of_matrices = expand(cur_element[0], cur_element[1], cur_element[2], cur_element[3], cur_element[4])
             for itm in arr_of_matrices:
                 if test(itm[2], len(arr)):
                     bssf = itm[1]
