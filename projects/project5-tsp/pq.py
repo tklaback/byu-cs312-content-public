@@ -1,10 +1,20 @@
 from typing import Dict, List
 
 class GraphNode:
-    def __init__(self, matrix: list, bound: int, path: list) -> None:
+    def __init__(self, matrix: list, bound: int, path: list, avoid_rows: list, avoid_cols: list) -> None:
         self.matrix = matrix
         self.bound = bound
         self.path = path
+        self.avoid_rows = avoid_rows
+        self.avoid_cols = avoid_cols
+    
+    def __gt__(self: 'GraphNode', other: 'GraphNode'):
+        if len(self.path) < len(other.path):
+            return True
+        elif len(self.path) == len(other.path):
+            if self.bound > other.bound:
+                return True
+        return False
 
 class Heap:
     def __init__(self) -> None:
@@ -60,7 +70,7 @@ class BinaryHeap(Heap):
         """O(logn) because we move up a tree height of one at each iteration"""
         while (cur_idx - 1) // 2 >= 0:
             parent_idx = (cur_idx - 1) // 2
-            if self._heap[parent_idx].bound > self._heap[cur_idx].bound:
+            if self._heap[parent_idx] > self._heap[cur_idx]:
                 
                 self._heap[cur_idx], self._heap[parent_idx] = \
                 self._heap[parent_idx], self._heap[cur_idx]
@@ -88,7 +98,7 @@ class BinaryHeap(Heap):
         while 2 * cur_idx + 1 < len(self._heap):
             small_side: int = self._get_min_child(cur_idx)
 
-            if self._heap[cur_idx].bound > self._heap[small_side].bound:
+            if self._heap[cur_idx] > self._heap[small_side]:
                 self._heap[cur_idx], self._heap[small_side] = \
                 self._heap[small_side], self._heap[cur_idx]
 
@@ -111,7 +121,7 @@ class BinaryHeap(Heap):
         """O(1)"""
         if 2 * cur_idx + 2 > len(self._heap) - 1:
             return 2 * cur_idx + 1
-        if self._heap[2 * cur_idx + 2].bound > self._heap[2 * cur_idx + 1].bound:
+        if self._heap[2 * cur_idx + 2] > self._heap[2 * cur_idx + 1]:
             return 2 * cur_idx + 1
         return 2 * cur_idx + 2
     

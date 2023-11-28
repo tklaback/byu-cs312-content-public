@@ -11,13 +11,16 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
     
     #returns new reduced matrix and bound corresponding to it
     if avoid_row != None and avoid_col != None:
-        arr[avoid_col][avoid_row] = float('inf')
+        if len(avoid_col) != len(avoid_row):
+           raise Exception("AVOID ROWS AND COLUMNS DO NOT MATCH")
+        for itr in range(len(avoid_row)):
+           arr[avoid_col[itr]][avoid_row[itr]] = float('inf')
     
     new_list = []
 
     for row in range(len(arr)):
         tmp_lyst = []
-        if row == avoid_row:
+        if avoid_row and row in avoid_row:
             for col in range(len(arr[0])):
                 tmp_lyst.append(float('inf'))
             new_list.append(tmp_lyst)
@@ -29,7 +32,7 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
         new_list.append(tmp_lyst)
     
     for row in range(len(new_list)):
-        if row == avoid_col:
+        if avoid_col and row in avoid_col:
             for col in range(len(new_list[0])):
                 new_list[col][row] = float('inf')
             continue
@@ -38,6 +41,20 @@ def get_bound(arr: list, avoid_row: int = None, avoid_col: int = None) -> tuple:
         for col in range(len(new_list[0])):
             if new_list[col][row] != float('inf'):
                 new_list[col][row] -= min_col_num
+
+
+    for row in range(len(new_list)):
+        if avoid_row and row not in avoid_row:
+            min_val = min(new_list[row])
+            if min_val == float('inf'):
+                cur_bound = float('inf')
+    
+    for row in range(len(new_list)):
+        if avoid_col and row not in avoid_col:
+            min_col_num = min([new_list[col][row] for col in range(len(new_list[0]))])
+            if min_col_num == float('inf'):
+                cur_bound = float('inf')
+
     
     return (new_list, cur_bound)
 
@@ -46,9 +63,14 @@ def expand(cur_element: GraphNode):
     row_num = cur_element.path[-1]
     for col in range(len(cur_element.matrix[row_num])):
         if cur_element.matrix[row_num][col] != float('inf'):
-            new_matrix, bound = get_bound(cur_element.matrix, row_num, col)
+            new_matrix, bound = get_bound(cur_element.matrix, cur_element.avoid_rows + [row_num], cur_element.avoid_cols + [col])
             if bound != float('nan') and (cur_element.bound + cur_element.matrix[row_num][col] + bound) < bssf:
-                expansion.append(GraphNode(new_matrix, (cur_element.bound + cur_element.matrix[row_num][col] + bound), cur_element.path[:] + [col]))
+                expansion.append(GraphNode(new_matrix, 
+                                           (cur_element.bound + cur_element.matrix[row_num][col] + bound), 
+                                           cur_element.path[:] + [col],
+                                           cur_element.avoid_rows + [row_num],
+                                           cur_element.avoid_cols + [col]
+                                ))
     
     return expansion
 
@@ -71,7 +93,7 @@ def process(arr: list):
 
     # q = [GraphNode(new_list, new_bound, lyst)]
     q = BinaryHeap()
-    q.insert(GraphNode(new_list, new_bound, lyst))
+    q.insert(GraphNode(new_list, new_bound, lyst, [], []))
 
     while True:
         cur_element = q.delete_min()
