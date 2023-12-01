@@ -172,6 +172,8 @@ class TSPSolver:
 
 	def branchAndBound( self, time_allowance=60.0 ):
 		cities = self._scenario.getCities()
+
+		results = {}
 		
 		matrix = [[city.costTo(other_city) for other_city in cities] for city in cities]
 
@@ -185,7 +187,9 @@ class TSPSolver:
 		q.insert(GraphNode(new_list, new_bound, lyst, [], []))
 
 		count = 0
-		while True:
+		found_tour = False
+		start_time = time.time()
+		while time.time()-start_time < time_allowance:
 			cur_element = q.delete_min()
 			if cur_element == None:
 				break
@@ -193,16 +197,22 @@ class TSPSolver:
 				arr_of_matrices = self._expand(cur_element, bssf)
 				for itm in arr_of_matrices:
 					if self._test(itm.path, len(matrix)):
+						found_tour = True
 						bssf = [itm.bound, itm.path]
 					elif itm.bound < bssf[0]:
 						q.insert(itm)
 
 
 		path = [cities[city_idx] for city_idx in bssf[1]]
+		path.pop()
 
-		return path
+		end_time = time.time()
+		results['cost'] = bssf[0] if found_tour else math.inf
+		results['time'] = end_time - start_time
+		results['count'] = count
+		results['soln'] = TSPSolution(path)
 
-
+		return results
 
 
 	''' <summary>
