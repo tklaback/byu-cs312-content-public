@@ -177,7 +177,7 @@ class TSPSolver:
 		
 		matrix = [[city.costTo(other_city) for other_city in cities] for city in cities]
 
-		bssf = [40000, None]
+		bssf = [25000, None]
 
 		lyst = [0]
 		new_list, new_bound = self._get_bound(matrix)
@@ -186,7 +186,7 @@ class TSPSolver:
 		q = BinaryHeap()
 		q.insert(GraphNode(new_list, new_bound, lyst, [], []))
 
-		count = 0
+		count = 1
 		found_tour = False
 		start_time = time.time()
 		while time.time()-start_time < time_allowance:
@@ -201,6 +201,7 @@ class TSPSolver:
 						bssf = [itm.bound, itm.path]
 					elif itm.bound < bssf[0]:
 						q.insert(itm)
+						count += 1
 
 
 		path = [cities[city_idx] for city_idx in bssf[1]]

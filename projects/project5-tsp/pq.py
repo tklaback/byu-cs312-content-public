@@ -9,12 +9,15 @@ class GraphNode:
         self.avoid_cols = avoid_cols
     
     def __gt__(self: 'GraphNode', other: 'GraphNode'):
-        if len(self.path) < len(other.path):
-            return True
-        elif len(self.path) == len(other.path):
-            if self.bound > other.bound:
-                return True
-        return False
+        a = 1
+        b = 15
+
+        this_node_score = a * self.bound + b * len(self.path)
+        other_node_score = a * other.bound + b * len(other.path)
+
+        # Less than here because __gt__ menas that self is going to be lower priority
+        # in the priority queue
+        return this_node_score < other_node_score 
 
 class Heap:
     def __init__(self) -> None:
