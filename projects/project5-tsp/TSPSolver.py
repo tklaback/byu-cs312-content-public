@@ -147,13 +147,13 @@ class TSPSolver:
 		
 		return (new_list, cur_bound)
 
-	def _expand(self, cur_element: GraphNode, bssf: int):
+	def _expand(self, cur_element: GraphNode, bssf: list):
 		expansion = []
 		row_num = cur_element.path[-1]
 		for col in range(len(cur_element.matrix[row_num])):
 			if cur_element.matrix[row_num][col] != float('inf'):
 				new_matrix, bound = self._get_bound(cur_element.matrix, cur_element.avoid_rows + [row_num], cur_element.avoid_cols + [col])
-				if bound != float('nan') and (cur_element.bound + cur_element.matrix[row_num][col] + bound) < bssf:
+				if bound != float('nan') and (cur_element.bound + cur_element.matrix[row_num][col] + bound) < bssf[0]:
 					expansion.append(GraphNode(new_matrix, 
 											(cur_element.bound + cur_element.matrix[row_num][col] + bound), 
 											cur_element.path[:] + [col],
@@ -169,36 +169,38 @@ class TSPSolver:
 			return True
 		return False
 
-	def _process(self, arr: list):
-		bssf = 40000
-
-		lyst = [0]
-		new_list, new_bound = self._get_bound(arr)
-
-		# q = [GraphNode(new_list, new_bound, lyst)]
-		q = BinaryHeap()
-		q.insert(GraphNode(new_list, new_bound, lyst, [], []))
-
-		while True:
-			cur_element = q.delete_min()
-			if cur_element == None:
-				break
-			if cur_element.bound < bssf:
-				arr_of_matrices = self._expand(cur_element, bssf)
-				for itm in arr_of_matrices:
-					if self._test(itm.path, len(arr)):
-						bssf = itm.bound
-					elif itm.bound < bssf:
-						q.insert(itm)
-
-		return bssf
 
 	def branchAndBound( self, time_allowance=60.0 ):
 		cities = self._scenario.getCities()
 		
 		matrix = [[city.costTo(other_city) for other_city in cities] for city in cities]
 
-		self._process(matrix)
+		bssf = [40000, None]
+
+		lyst = [0]
+		new_list, new_bound = self._get_bound(matrix)
+
+		# q = [GraphNode(new_list, new_bound, lyst)]
+		q = BinaryHeap()
+		q.insert(GraphNode(new_list, new_bound, lyst, [], []))
+
+		count = 0
+		while True:
+			cur_element = q.delete_min()
+			if cur_element == None:
+				break
+			if cur_element.bound < bssf[0]:
+				arr_of_matrices = self._expand(cur_element, bssf)
+				for itm in arr_of_matrices:
+					if self._test(itm.path, len(matrix)):
+						bssf = [itm.bound, itm.path]
+					elif itm.bound < bssf[0]:
+						q.insert(itm)
+
+
+		path = [cities[city_idx] for city_idx in bssf[1]]
+
+		return path
 
 
 
