@@ -177,7 +177,7 @@ class TSPSolver:
 		
 		matrix = [[city.costTo(other_city) for other_city in cities] for city in cities]
 
-		bssf = [25000, None]
+		bssf = [11_000, None]
 
 		lyst = [0]
 		new_list, new_bound = self._get_bound(matrix)

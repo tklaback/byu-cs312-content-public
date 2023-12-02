@@ -10,7 +10,7 @@ class GraphNode:
     
     def __gt__(self: 'GraphNode', other: 'GraphNode'):
         a = 1
-        b = 15
+        b = 1000
 
         this_node_score = a * self.bound + b * len(self.path)
         other_node_score = a * other.bound + b * len(other.path)
