@@ -83,18 +83,22 @@ class TSPSolver:
 	'''
 
 	def _greedy_helper(self, cur_city: City, path: List[City], bssf: int, num_cities: int) -> bool:
+		# n^2logn ?
 		
 		if len(path) == num_cities:
 			if cur_city.costTo(path[0]) != float('inf'):
 				return True
 			return False
 
+		# nlogn
 		cities: List[City] = sorted(self._scenario.getCities(), key=lambda x:cur_city.costTo(x))
 
+		# n
 		for city in cities:
 
 			cur_num = cur_city.costTo(city)
-
+			
+			# n
 			if cur_num == float('inf') or city in path:
 				continue
 			
@@ -102,6 +106,7 @@ class TSPSolver:
 
 			bssf[0] += cur_num
 
+			# n
 			response = self._greedy_helper(city, path, bssf, num_cities)
 
 			if response == True:
@@ -113,19 +118,20 @@ class TSPSolver:
 		return False
 
 
-	def greedy( self,time_allowance=60.0 ):
+	def greedy( self,time_allowance=60.0 ) -> dict:
 		start_time = time.time()
-		for city in self._scenario.getCities():
-			bssf = [0]
-			lyst = [city]
-			if self._greedy_helper(city, lyst, bssf, len(self._scenario.getCities())):
-				end_time = time.time()
-				results = {}
-				results['cost'] = bssf[0]
-				results['time'] = end_time - start_time
-				results['count'] = 0
-				results['soln'] = TSPSolution(lyst)
-				return results
+		# for city in self._scenario.getCities():
+		city = self._scenario.getCities()[0]
+		bssf = [0]
+		lyst = [city]
+		if self._greedy_helper(city, lyst, bssf, len(self._scenario.getCities())):
+			end_time = time.time()
+			results = {}
+			results['cost'] = bssf[0]
+			results['time'] = end_time - start_time
+			results['count'] = 0
+			results['soln'] = TSPSolution(lyst)
+			return results
 
 		raise Exception("Should not reach this point")
 
@@ -220,7 +226,8 @@ class TSPSolver:
 		
 		matrix = [[city.costTo(other_city) for other_city in cities] for city in cities]
 
-		bssf = [11_000, None]
+		greedy_val = self.greedy()
+		bssf = [greedy_val['cost'], greedy_val['soln'].route]
 
 		lyst = [0]
 		new_list, new_bound = self._get_bound(matrix)
@@ -246,15 +253,15 @@ class TSPSolver:
 						q.insert(itm)
 						count += 1
 
-
-		path = [cities[city_idx] for city_idx in bssf[1]]
-		path.pop()
+		if type(bssf[1][0]) == int:
+			bssf[1] = [cities[city_idx] for city_idx in bssf[1]]
+			bssf[1].pop()
 
 		end_time = time.time()
-		results['cost'] = bssf[0] if found_tour else math.inf
+		results['cost'] = bssf[0]
 		results['time'] = end_time - start_time
 		results['count'] = count
-		results['soln'] = TSPSolution(path)
+		results['soln'] = TSPSolution(bssf[1])
 
 		return results
 
