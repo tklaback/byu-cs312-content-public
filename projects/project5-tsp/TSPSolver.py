@@ -82,26 +82,36 @@ class TSPSolver:
 		algorithm</returns>
 	'''
 
-	def _greedy_helper(self, cur_city: City, path: list, bssf: int, num_cities: int) -> bool:
-
-
-		best_city: City = sorted(self._scenario.getCities(), key=lambda x:cur_city.costTo(x))[0]
-
-		cur_num = cur_city.costTo(best_city)
-
-		if cur_num == float('inf') or best_city in path:
-			return False
+	def _greedy_helper(self, cur_city: City, path: List[City], bssf: int, num_cities: int) -> bool:
 		
-		path.append(best_city)
-
-		bssf[0] += cur_num
-
 		if len(path) == num_cities:
-			if best_city.costTo(cur_city) != float('inf'):
+			if cur_city.costTo(path[0]) != float('inf'):
 				return True
 			return False
-		
-		return self._greedy_helper(best_city, path, bssf, num_cities)
+
+		cities: List[City] = sorted(self._scenario.getCities(), key=lambda x:cur_city.costTo(x))
+
+		for city in cities:
+
+			cur_num = cur_city.costTo(city)
+
+			if cur_num == float('inf') or city in path:
+				continue
+			
+			path.append(city)
+
+			bssf[0] += cur_num
+
+			response = self._greedy_helper(city, path, bssf, num_cities)
+
+			if response == True:
+				return response
+			
+			path.pop()
+			bssf[0] -= cur_num
+			
+		return False
+
 
 	def greedy( self,time_allowance=60.0 ):
 		start_time = time.time()
