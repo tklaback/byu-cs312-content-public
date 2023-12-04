@@ -196,13 +196,14 @@ class TSPSolver:
 		
 		return (new_list, cur_bound)
 
-	def _expand(self, cur_element: GraphNode, bssf: list, num_pruned: int):
+	def _expand(self, cur_element: GraphNode, bssf: list, num_pruned: list, total_states: list):
 		expansion = []
 		row_num = cur_element.path[-1]
 		for col in range(len(cur_element.matrix[row_num])):
 			if cur_element.matrix[row_num][col] != float('inf'):
 				new_matrix, bound = self._get_bound(cur_element.matrix, cur_element.avoid_rows + [row_num], cur_element.avoid_cols + [col])
-				if bound != float('nan') and (cur_element.bound + cur_element.matrix[row_num][col] + bound) < bssf[0]:
+				total_states[0] += 1
+				if cur_element.bound + cur_element.matrix[row_num][col] + bound < bssf[0]:
 					expansion.append(GraphNode(new_matrix, 
 											(cur_element.bound + cur_element.matrix[row_num][col] + bound), 
 											cur_element.path[:] + [col],
@@ -242,7 +243,7 @@ class TSPSolver:
 		max_stored_states = 1
 		bssf_updates = 0
 		num_pruned = [0]
-
+		total_states = [1]
 
 		start_time = time.time()
 		while time.time()-start_time < time_allowance:
@@ -252,7 +253,7 @@ class TSPSolver:
 			if cur_element == None:
 				break
 			if cur_element.bound < bssf[0]:
-				arr_of_matrices = self._expand(cur_element, bssf, num_pruned)
+				arr_of_matrices = self._expand(cur_element, bssf, num_pruned, total_states)
 				for itm in arr_of_matrices:
 					if self._test(itm.path, len(matrix)):
 						bssf = [itm.bound, itm.path]
@@ -274,6 +275,11 @@ class TSPSolver:
 		results['time'] = end_time - start_time
 		results['count'] = count_of_states
 		results['soln'] = TSPSolution(bssf[1])
+		results['total'] = total_states[0]
+		results['pruned'] = num_pruned[0]
+		results['max'] = max_stored_states
+
+		print("BSSF UPDATES: ", bssf_updates)
 
 		return results
 
