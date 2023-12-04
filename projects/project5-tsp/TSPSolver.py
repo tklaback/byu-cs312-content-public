@@ -196,7 +196,7 @@ class TSPSolver:
 		
 		return (new_list, cur_bound)
 
-	def _expand(self, cur_element: GraphNode, bssf: list):
+	def _expand(self, cur_element: GraphNode, bssf: list, num_pruned: int):
 		expansion = []
 		row_num = cur_element.path[-1]
 		for col in range(len(cur_element.matrix[row_num])):
@@ -209,6 +209,8 @@ class TSPSolver:
 											cur_element.avoid_rows + [row_num],
 											cur_element.avoid_cols + [col]
 									))
+				else:
+					num_pruned[0] += 1
 		
 		return expansion
 
@@ -236,22 +238,32 @@ class TSPSolver:
 		q = BinaryHeap()
 		q.insert(GraphNode(new_list, new_bound, lyst, [], []))
 
-		count = 1
-		found_tour = False
+		count_of_states = 1
+		max_stored_states = 1
+		bssf_updates = 0
+		num_pruned = [0]
+
+
 		start_time = time.time()
 		while time.time()-start_time < time_allowance:
+			if q.get_length() > max_stored_states:
+				max_stored_states = q.get_length()
 			cur_element = q.delete_min()
 			if cur_element == None:
 				break
 			if cur_element.bound < bssf[0]:
-				arr_of_matrices = self._expand(cur_element, bssf)
+				arr_of_matrices = self._expand(cur_element, bssf, num_pruned)
 				for itm in arr_of_matrices:
 					if self._test(itm.path, len(matrix)):
-						found_tour = True
 						bssf = [itm.bound, itm.path]
+						bssf_updates += 1
 					elif itm.bound < bssf[0]:
 						q.insert(itm)
-						count += 1
+						count_of_states += 1
+					else:
+						num_pruned[0] += 1
+		
+		num_pruned[0] += q.get_length()
 
 		if type(bssf[1][0]) == int:
 			bssf[1] = [cities[city_idx] for city_idx in bssf[1]]
@@ -260,7 +272,7 @@ class TSPSolver:
 		end_time = time.time()
 		results['cost'] = bssf[0]
 		results['time'] = end_time - start_time
-		results['count'] = count
+		results['count'] = count_of_states
 		results['soln'] = TSPSolution(bssf[1])
 
 		return results

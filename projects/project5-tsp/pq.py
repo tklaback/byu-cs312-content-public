@@ -28,7 +28,7 @@ class Heap:
     def get_parent(self, vert: GraphNode) -> GraphNode:
         pass
 
-    def get_length(self, vert: GraphNode) -> float:
+    def get_length(self) -> int:
         pass
     
     def get_dist(self, node: GraphNode) -> int:
@@ -132,9 +132,9 @@ class BinaryHeap(Heap):
     #     """O(1)"""
     #     return self._prev.get(vert, None)
     
-    # def get_length(self, vert: GraphNode) -> float:
-    #     """O(1)"""
-    #     return self._node_to_priority[vert]
+    def get_length(self) -> int:
+        """O(1)"""
+        return len(self._heap)
     
     # def get_dist(self, node: GraphNode) -> int:
     #     """O(1)"""
