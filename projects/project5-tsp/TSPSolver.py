@@ -99,7 +99,10 @@ class TSPSolver:
 			cur_num = cur_city.costTo(city)
 			
 			# n
-			if cur_num == float('inf') or city in path:
+			if cur_num == float('inf'):
+				return False
+			
+			if city in path:
 				continue
 			
 			path.append(city)
