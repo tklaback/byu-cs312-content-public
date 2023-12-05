@@ -82,13 +82,16 @@ class TSPSolver:
 		algorithm</returns>
 	'''
 
-	def _greedy_helper(self, cur_city: City, path: List[City], bssf: int, num_cities: int) -> bool:
+	def _greedy_helper(self, cur_city: City, path: List[City], bssf: int, num_cities: int, start_time, time_out) -> bool:
 		# n^2logn ?
-		
+		if time.time() - start_time >= time_out:
+			return ["time_out", True]
+
+
 		if len(path) == num_cities:
 			if cur_city.costTo(path[0]) != float('inf'):
-				return True
-			return False
+				return [None, True]
+			return [None, False]
 
 		# nlogn
 		cities: List[City] = sorted(self._scenario.getCities(), key=lambda x:cur_city.costTo(x))
@@ -100,7 +103,7 @@ class TSPSolver:
 			
 			# n
 			if cur_num == float('inf'):
-				return False
+				return [None, False]
 			
 			if city in path:
 				continue
@@ -110,31 +113,31 @@ class TSPSolver:
 			bssf[0] += cur_num
 
 			# n
-			response = self._greedy_helper(city, path, bssf, num_cities)
+			response = self._greedy_helper(city, path, bssf, num_cities, start_time, time_out)
 
-			if response == True:
+			if response[1] == True:
 				return response
 			
 			path.pop()
 			bssf[0] -= cur_num
 			
-		return False
+		return [None, False]
 
 
 	def greedy( self,time_allowance=60.0 ) -> dict:
 		start_time = time.time()
-		# for city in self._scenario.getCities():
-		city = self._scenario.getCities()[0]
-		bssf = [0]
-		lyst = [city]
-		if self._greedy_helper(city, lyst, bssf, len(self._scenario.getCities())):
-			end_time = time.time()
-			results = {}
-			results['cost'] = bssf[0]
-			results['time'] = end_time - start_time
-			results['count'] = 0
-			results['soln'] = TSPSolution(lyst)
-			return results
+		for city in self._scenario.getCities():
+			city = self._scenario.getCities()[0]
+			bssf = [0]
+			lyst = [city]
+			if self._greedy_helper(city, lyst, bssf, len(self._scenario.getCities()), start_time, time_allowance):
+				end_time = time.time()
+				results = {}
+				results['cost'] = bssf[0]
+				results['time'] = end_time - start_time
+				results['count'] = 0
+				results['soln'] = TSPSolution(lyst)
+				return results
 
 		raise Exception("Should not reach this point")
 
@@ -258,7 +261,7 @@ class TSPSolver:
 			if cur_element.bound < bssf[0]:
 				arr_of_matrices = self._expand(cur_element, bssf, num_pruned, total_states)
 				for itm in arr_of_matrices:
-					if self._test(itm.path, len(matrix)):
+					if self._test(itm.path, len(matrix)) and itm.bound < bssf[0]:
 						bssf = [itm.bound, itm.path]
 						bssf_updates += 1
 					elif itm.bound < bssf[0]:
