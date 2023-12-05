@@ -82,64 +82,56 @@ class TSPSolver:
 		algorithm</returns>
 	'''
 
-	def _greedy_helper(self, cur_city: City, path: List[City], bssf: int, num_cities: int, start_time, time_out) -> bool:
-		# n^2logn ?
-		if time.time() - start_time >= time_out:
-			return ["time_out", True]
-
-
-		if len(path) == num_cities:
-			if cur_city.costTo(path[0]) != float('inf'):
-				return [None, True]
-			return [None, False]
-
-		# nlogn
-		cities: List[City] = sorted(self._scenario.getCities(), key=lambda x:cur_city.costTo(x))
-
-		# n
-		for city in cities:
-
-			cur_num = cur_city.costTo(city)
-			
-			# n
-			if cur_num == float('inf'):
-				return [None, False]
-			
-			if city in path:
-				continue
-			
-			path.append(city)
-
-			bssf[0] += cur_num
-
-			# n
-			response = self._greedy_helper(city, path, bssf, num_cities, start_time, time_out)
-
-			if response[1] == True:
-				return response
-			
-			path.pop()
-			bssf[0] -= cur_num
-			
-		return [None, False]
-
-
 	def greedy( self,time_allowance=60.0 ) -> dict:
 		start_time = time.time()
-		for city in self._scenario.getCities():
-			city = self._scenario.getCities()[0]
-			bssf = [0]
-			lyst = [city]
-			if self._greedy_helper(city, lyst, bssf, len(self._scenario.getCities()), start_time, time_allowance):
-				end_time = time.time()
-				results = {}
-				results['cost'] = bssf[0]
-				results['time'] = end_time - start_time
-				results['count'] = 0
-				results['soln'] = TSPSolution(lyst)
-				return results
+		flag = False
+		idx = 0
+		while not flag and idx < len(self._scenario.getCities()):
+			city = self._scenario.getCities()[idx]
+			bssf = 0
+			path = [city]
+			while time.time() - start_time < time_allowance:
+				# city = self._scenario.getCities()[itr]
+				# for city in self._scenario.getCities():
+				# 	bssf = [0]
+				# 	lyst = [city]
+				if len(path) == len(self._scenario.getCities()) and path[-1].costTo(path[0]) != float('inf'):
+					bssf += path[-1].costTo(path[0])
+					flag = True
+					break
 
-		raise Exception("Should not reach this point")
+
+				cities: List[City] = sorted(self._scenario.getCities(), key=lambda x:city.costTo(x))
+				itr = 0
+				while itr < len(cities) and cities[itr] != float('inf'):
+					if cities[itr] not in path:
+						break
+					
+					itr += 1
+				
+				if itr >= len(cities):
+					break
+				
+				if city.costTo(cities[itr]) != float('inf'):
+					bssf += city.costTo(cities[itr])
+					path.append(cities[itr])
+					city = cities[itr]
+
+				else:
+					break
+			idx += 1
+
+		if not flag:
+			bssf = float('inf')
+			path = []
+		# if self._greedy_helper(city, lyst, bssf, len(self._scenario.getCities()), start_time, time_allowance):
+		end_time = time.time()
+		results = {}
+		results['cost'] = bssf
+		results['time'] = end_time - start_time
+		results['count'] = 0
+		results['soln'] = TSPSolution(path)
+		return results
 
 	''' <summary>
 		This is the entry point for the branch-and-bound algorithm that you will implement
