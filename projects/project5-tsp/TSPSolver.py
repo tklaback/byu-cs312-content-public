@@ -95,10 +95,13 @@ class TSPSolver:
 				# for city in self._scenario.getCities():
 				# 	bssf = [0]
 				# 	lyst = [city]
-				if len(path) == len(self._scenario.getCities()) and path[-1].costTo(path[0]) != float('inf'):
-					bssf += path[-1].costTo(path[0])
-					flag = True
-					break
+				if len(path) == len(self._scenario.getCities()):
+					if path[-1].costTo(path[0]) != float('inf'):
+						bssf += path[-1].costTo(path[0])
+						flag = True
+						break
+					else:
+						break
 
 
 				cities: List[City] = sorted(self._scenario.getCities(), key=lambda x:city.costTo(x))
